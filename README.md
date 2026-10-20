@@ -25,7 +25,9 @@ GITHUB_TOKEN=your_token npm run dev
 A pull request appears when it has the `ready-for-testing` label and a
 `feature:` label, for example `feature:smart-recommendations`. The same feature
 label on a web pull request and a React Native pull request places them on one
-card. A successful GitHub deployment for that branch supplies the preview link.
+card. The preview URL is entered on the branch after a developer starts a
+preview server. Saving it requires the token to also edit files in
+`pocketnest/pncodedash`.
 
 ## Commands
 

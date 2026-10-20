@@ -227,6 +227,18 @@ export default function Dashboard({
     setIsFormOpen(true);
   }
 
+  function savePreview(id: string, previewUrl: string) {
+    const nextUrl = previewUrl || undefined;
+    setFeatures((current) =>
+      current.map((feature) =>
+        feature.id === id ? { ...feature, previewUrl: nextUrl } : feature,
+      ),
+    );
+    setSelectedFeature((current) =>
+      current?.id === id ? { ...current, previewUrl: nextUrl } : current,
+    );
+  }
+
   function saveFeature(draft: FeatureDraft) {
     if (editingFeature) {
       setFeatures((current) =>
@@ -523,6 +535,7 @@ export default function Dashboard({
           source={source}
           onClose={() => setSelectedFeature(null)}
           onEdit={() => openEdit(selectedFeature)}
+          onPreviewSaved={savePreview}
         />
       )}
 
@@ -721,11 +734,13 @@ function FeatureDetail({
   source,
   onClose,
   onEdit,
+  onPreviewSaved,
 }: {
   feature: Feature;
   source: "github" | "sample";
   onClose: () => void;
   onEdit: () => void;
+  onPreviewSaved: (id: string, previewUrl: string) => void;
 }) {
   return (
     <div className="fixed inset-0 z-[60] flex justify-end">
@@ -810,23 +825,20 @@ function FeatureDetail({
             Preview environment
           </h3>
           <div className="mt-3 space-y-3">
-            <PreviewLink label="Web preview" url={feature.webPreviewUrl} />
-            <PreviewLink
-              label="React Native preview"
-              url={feature.nativePreviewUrl}
-            />
-            {!feature.webPreviewUrl &&
-              !feature.nativePreviewUrl &&
-              feature.previewUrl && (
-                <PreviewLink label="Preview" url={feature.previewUrl} />
-              )}
-            {!feature.previewUrl &&
-              !feature.webPreviewUrl &&
-              !feature.nativePreviewUrl && (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center text-xs text-slate-500">
-                  No preview deployment linked yet.
-                </div>
-              )}
+            {source === "github" ? (
+              <PreviewUrlEditor
+                key={`${feature.id}:${feature.previewUrl ?? ""}`}
+                featureId={feature.id}
+                previewUrl={feature.previewUrl ?? ""}
+                onSaved={onPreviewSaved}
+              />
+            ) : feature.previewUrl ? (
+              <PreviewLink label="Preview" url={feature.previewUrl} />
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center text-xs text-slate-500">
+                No preview URL yet.
+              </div>
+            )}
           </div>
         </div>
 
@@ -843,6 +855,69 @@ function FeatureDetail({
         </p>
       </aside>
     </div>
+  );
+}
+
+function PreviewUrlEditor({
+  featureId,
+  previewUrl,
+  onSaved,
+}: {
+  featureId: string;
+  previewUrl: string;
+  onSaved: (id: string, previewUrl: string) => void;
+}) {
+  const [url, setUrl] = useState(previewUrl);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+
+    const response = await fetch("/api/previews", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: featureId, previewUrl: url.trim() }),
+    });
+    const body = (await response.json().catch(() => ({}))) as {
+      error?: string;
+    };
+    setSaving(false);
+
+    if (!response.ok) {
+      setError(body.error ?? "The preview URL could not be saved.");
+      return;
+    }
+
+    onSaved(featureId, url.trim());
+  }
+
+  return (
+    <form onSubmit={save} className="space-y-3">
+      {url.trim() && /^https:\/\/\S+$/.test(url.trim()) && (
+        <PreviewLink label="Preview server" url={url.trim()} />
+      )}
+      <input
+        type="url"
+        value={url}
+        onChange={(event) => setUrl(event.target.value)}
+        placeholder="https://preview.example.com"
+        className="form-input"
+      />
+      <p className="text-xs leading-5 text-slate-500">
+        Paste the preview server a developer started for this branch.
+      </p>
+      {error && <p className="text-xs font-medium text-amber-700">{error}</p>}
+      <button
+        type="submit"
+        disabled={saving || url.trim() === previewUrl}
+        className="h-10 rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white disabled:cursor-default disabled:bg-slate-300"
+      >
+        {saving ? "Saving..." : previewUrl ? "Save URL" : "Add URL"}
+      </button>
+    </form>
   );
 }
 

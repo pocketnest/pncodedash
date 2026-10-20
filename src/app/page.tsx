@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import Dashboard from "@/components/dashboard";
 import { Feature, seedFeatures } from "@/lib/features";
 import { GitHubReadError, loadTestingFeatures } from "@/lib/github";
+import { loadPreviewUrls } from "@/lib/preview-urls";
 
 function BoardFallback() {
   return (
@@ -24,7 +25,14 @@ async function TestingBoard() {
   let errorMessage: string | undefined;
 
   try {
-    features = await loadTestingFeatures(token);
+    const [loadedFeatures, previewUrls] = await Promise.all([
+      loadTestingFeatures(token),
+      loadPreviewUrls(token),
+    ]);
+    features = loadedFeatures.map((feature) => ({
+      ...feature,
+      previewUrl: previewUrls[feature.id],
+    }));
   } catch (error) {
     features = [];
     errorMessage =

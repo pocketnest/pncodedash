@@ -18,13 +18,6 @@ type GitHubPull = {
   labels: GitHubLabel[];
 };
 
-type Deployment = { id: number };
-
-type DeploymentStatus = {
-  state: string;
-  environment_url?: string | null;
-};
-
 type PullSide = {
   branch: string;
   url: string;
@@ -32,7 +25,6 @@ type PullSide = {
   description: string;
   author: string;
   updatedAt: string;
-  previewUrl?: string;
 };
 
 export class GitHubReadError extends Error {
@@ -107,36 +99,9 @@ async function listReadyPulls(repo: string, token: string) {
   );
 }
 
-async function findPreviewUrl(repo: string, branch: string, token: string) {
-  const deployments = await githubFetch<Deployment[]>(
-    `/repos/${OWNER}/${repo}/deployments?ref=${encodeURIComponent(branch)}&per_page=5`,
-    token,
-  );
-
-  for (const deployment of deployments) {
-    const statuses = await githubFetch<DeploymentStatus[]>(
-      `/repos/${OWNER}/${repo}/deployments/${deployment.id}/statuses?per_page=10`,
-      token,
-    );
-    const live = statuses.find(
-      (status) => status.state === "success" && status.environment_url,
-    );
-    if (live?.environment_url) return live.environment_url;
-  }
-
-  return undefined;
-}
-
-async function toSide(repo: string, pull: GitHubPull, token: string) {
+function toSide(pull: GitHubPull) {
   const slug = featureSlug(labelNames(pull.labels));
   if (!slug) return null;
-
-  let previewUrl: string | undefined;
-  try {
-    previewUrl = await findPreviewUrl(repo, pull.head.ref, token);
-  } catch {
-    previewUrl = undefined;
-  }
 
   return {
     slug,
@@ -147,7 +112,6 @@ async function toSide(repo: string, pull: GitHubPull, token: string) {
       description: summary(pull.body, pull.title),
       author: pull.user?.login ?? "Unknown",
       updatedAt: pull.updated_at.slice(0, 10),
-      previewUrl,
     } satisfies PullSide,
   };
 }
@@ -165,10 +129,8 @@ export async function loadTestingFeatures(token: string): Promise<Feature[]> {
     listReadyPulls(NATIVE_REPO, token),
   ]);
 
-  const [webSides, nativeSides] = await Promise.all([
-    Promise.all(webPulls.map((pull) => toSide(WEB_REPO, pull, token))),
-    Promise.all(nativePulls.map((pull) => toSide(NATIVE_REPO, pull, token))),
-  ]);
+  const webSides = webPulls.map((pull) => toSide(pull));
+  const nativeSides = nativePulls.map((pull) => toSide(pull));
 
   const groups = new Map<string, { web?: PullSide; native?: PullSide }>();
 
@@ -186,7 +148,6 @@ export async function loadTestingFeatures(token: string): Promise<Feature[]> {
     .flatMap(([slug, group]) => {
       const primary = group.web ?? group.native;
       if (!primary) return [];
-      const previewUrl = group.web?.previewUrl ?? group.native?.previewUrl;
       const updatedAt = [group.web?.updatedAt, group.native?.updatedAt]
         .filter((date): date is string => Boolean(date))
         .sort()
@@ -209,9 +170,6 @@ export async function loadTestingFeatures(token: string): Promise<Feature[]> {
         nativeBranch: group.native?.branch ?? "",
         webUrl: group.web?.url,
         nativeUrl: group.native?.url,
-        previewUrl,
-        webPreviewUrl: group.web?.previewUrl,
-        nativePreviewUrl: group.native?.previewUrl,
         progress: 0,
         updatedAt: updatedAt ?? primary.updatedAt,
       };
