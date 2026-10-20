@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import SignOutButton from "@/components/sign-out-button";
 import { Feature, FeatureStatus, featureStatuses } from "@/lib/features";
 
 type BoardView = "overview" | "branches" | "environments";
@@ -139,10 +140,12 @@ export default function Dashboard({
   initialFeatures,
   source,
   error,
+  userEmail,
 }: {
   initialFeatures: Feature[];
   source: "github" | "sample";
   error?: string;
+  userEmail: string;
 }) {
   const [features, setFeatures] = useState(initialFeatures);
   const [search, setSearch] = useState("");
@@ -366,6 +369,10 @@ export default function Dashboard({
                   ? "Reading Pocketnest branches"
                   : "Showing sample data"}
               </div>
+              <div className="hidden max-w-48 truncate text-xs font-medium text-slate-500 sm:block">
+                {userEmail}
+              </div>
+              <SignOutButton />
               {source === "sample" && (
                 <button
                   onClick={openCreate}

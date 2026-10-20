@@ -1,6 +1,6 @@
 # Using PNCodeDash
 
-PNCodeDash is the testing board at <https://pncodedash.vercel.app>. It shows which features are ready for testing, which branches hold the work, and where to try the preview.
+PNCodeDash is the testing board at <https://pncodedash.vercel.app>. Sign in with a verified `@pocketnest.com` Google account. Other email addresses cannot register or sign in. It shows which features are ready for testing, which branches hold the work, and where to try the preview.
 
 The board reads open pull requests from two repositories:
 

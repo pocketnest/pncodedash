@@ -1,6 +1,9 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 import Dashboard from "@/components/dashboard";
+import { authOptions, isPocketnestEmail } from "@/lib/auth";
 import { Feature, seedFeatures } from "@/lib/features";
 import { GitHubReadError, loadTestingFeatures } from "@/lib/github";
 import { loadPreviewUrls } from "@/lib/preview-urls";
@@ -15,10 +18,19 @@ function BoardFallback() {
 
 async function TestingBoard() {
   await connection();
+  const session = await getServerSession(authOptions);
+  if (!isPocketnestEmail(session?.user?.email)) redirect("/login");
+
   const token = process.env.GITHUB_TOKEN;
 
   if (!token) {
-    return <Dashboard initialFeatures={seedFeatures} source="sample" />;
+    return (
+      <Dashboard
+        initialFeatures={seedFeatures}
+        source="sample"
+        userEmail={session.user.email}
+      />
+    );
   }
 
   let features: Feature[] = [];
@@ -46,6 +58,7 @@ async function TestingBoard() {
       initialFeatures={features}
       source="github"
       error={errorMessage}
+      userEmail={session.user.email}
     />
   );
 }

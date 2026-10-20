@@ -5,6 +5,28 @@ A testing board for Pocketnest features. It reads open pull requests from
 ones labeled `ready-for-testing`, and pairs web with React Native when both
 pull requests share a `feature:` label.
 
+## Google sign-in
+
+The board requires a verified `@pocketnest.com` Google account. Create a Google
+OAuth web client and set these environment variables in Vercel and locally:
+
+```bash
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_client_secret
+NEXTAUTH_SECRET=a_long_random_string
+NEXTAUTH_URL=https://pncodedash.vercel.app
+```
+
+Use `http://localhost:3000` for `NEXTAUTH_URL` when running locally. In Google
+Cloud, add these authorized redirect URIs:
+
+- `https://pncodedash.vercel.app/api/auth/callback/google`
+- `http://localhost:3000/api/auth/callback/google`
+
+Set the OAuth consent screen to Internal so only the Pocketnest Workspace can
+grant access. The app also rejects any account whose verified email is not
+`@pocketnest.com`.
+
 ## Getting started
 
 ```bash

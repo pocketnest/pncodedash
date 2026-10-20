@@ -1,6 +1,16 @@
+import { getServerSession } from "next-auth";
+import { authOptions, isPocketnestEmail } from "@/lib/auth";
 import { PreviewUrlError, savePreviewUrl } from "@/lib/preview-urls";
 
 export async function PUT(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!isPocketnestEmail(session?.user?.email)) {
+    return Response.json(
+      { error: "Sign in with a @pocketnest.com account." },
+      { status: 401 },
+    );
+  }
+
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
     return Response.json(
