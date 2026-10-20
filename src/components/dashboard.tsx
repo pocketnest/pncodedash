@@ -114,7 +114,7 @@ function BranchRow({
         {label}
       </span>
       <code className="truncate text-xs font-medium text-slate-600">
-        {branch || "No pull request"}
+        {branch || "No branch"}
       </code>
       {href && <ExternalLink size={13} className="ml-auto shrink-0 text-slate-400" />}
     </div>
@@ -309,8 +309,7 @@ export default function Dashboard({
             Preview sync
           </div>
           <p className="mt-2 text-xs leading-5 text-slate-400">
-            Web and React Native pull requests pair through a shared feature
-            label.
+            Web and React Native branches pair through a shared feature label.
           </p>
           <button className="mt-3 flex items-center gap-1 text-xs font-semibold text-[#ff8a70] hover:text-[#ffa38f]">
             Configure <ChevronRight size={13} />
@@ -356,7 +355,7 @@ export default function Dashboard({
               <div className="hidden items-center gap-2 text-xs text-slate-500 md:flex">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,.1)]" />
                 {source === "github"
-                  ? "Reading Pocketnest pull requests"
+                  ? "Reading Pocketnest branches"
                   : "Showing sample data"}
               </div>
               {source === "sample" && (
@@ -384,7 +383,7 @@ export default function Dashboard({
               </h1>
               <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
                 {source === "github"
-                  ? "Open pull requests labeled ready-for-testing, paired by a shared feature label."
+                  ? "Branches labeled ready-for-testing, paired across web and React Native."
                   : "Sample features for web and React Native. Connect GitHub to replace them with live pull requests."}
               </p>
             </div>
@@ -449,11 +448,18 @@ export default function Dashboard({
           <div className="mt-8 flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold text-slate-900">
-                Upcoming features
+                {source === "github" ? "Branches" : "Upcoming features"}
               </h2>
               <p className="mt-0.5 text-xs text-slate-500">
                 {filteredFeatures.length}{" "}
-                {filteredFeatures.length === 1 ? "feature" : "features"} shown
+                {source === "github"
+                  ? filteredFeatures.length === 1
+                    ? "branch"
+                    : "branches"
+                  : filteredFeatures.length === 1
+                    ? "feature"
+                    : "features"}{" "}
+                shown
               </p>
             </div>
             <button className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900">
@@ -731,7 +737,7 @@ function FeatureDetail({
       <aside className="relative h-full w-full max-w-lg overflow-y-auto bg-white p-6 shadow-2xl sm:p-8">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-[.14em] text-slate-400">
-            Feature details
+            {source === "github" ? "Branch" : "Feature details"}
           </span>
           <button
             onClick={onClose}
@@ -780,7 +786,7 @@ function FeatureDetail({
 
         <div className="mt-8">
           <h3 className="text-xs font-bold uppercase tracking-[.14em] text-slate-400">
-            Pull requests
+            Branches
           </h3>
           <div className="mt-3 space-y-3 rounded-2xl border border-slate-200 p-4">
             <BranchRow
