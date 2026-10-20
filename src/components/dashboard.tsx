@@ -3,27 +3,27 @@
 import {
   ArrowUpRight,
   Boxes,
-  CalendarDays,
-  Check,
-  ChevronRight,
   CircleDot,
   Cloud,
-  Code2,
   ExternalLink,
   GitBranch,
   LayoutDashboard,
   Menu,
-  MoreHorizontal,
   Plus,
-  Rocket,
   Search,
-  Settings,
-  Sparkles,
-  Users,
   X,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Feature, FeatureStatus, featureStatuses } from "@/lib/features";
+
+type BoardView = "overview" | "branches" | "environments";
+
+function missingSides(feature: Feature) {
+  const missing: string[] = [];
+  if (!feature.webBranch) missing.push("Web");
+  if (!feature.nativeBranch) missing.push("React Native");
+  return missing;
+}
 
 const statusStyles: Record<
   FeatureStatus,
@@ -154,6 +154,7 @@ export default function Dashboard({
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [view, setView] = useState<BoardView>("branches");
 
   useEffect(() => {
     if (source !== "sample") return;
@@ -210,11 +211,10 @@ export default function Dashboard({
   }, [features, search, statusFilter]);
 
   const previewCount = features.filter((feature) => feature.previewUrl).length;
-  const inFlightCount = features.filter(
-    (feature) =>
-      feature.status === "In development" ||
-      feature.status === "Ready for testing",
-  ).length;
+  const unmatched = features.filter(
+    (feature) => missingSides(feature).length > 0,
+  );
+  const missingPreview = features.filter((feature) => !feature.previewUrl);
 
   function openCreate() {
     setEditingFeature(null);
@@ -225,6 +225,11 @@ export default function Dashboard({
     setSelectedFeature(null);
     setEditingFeature(feature);
     setIsFormOpen(true);
+  }
+
+  function openView(next: BoardView) {
+    setView(next);
+    setMobileNavOpen(false);
   }
 
   function savePreview(id: string, previewUrl: string) {
@@ -304,40 +309,31 @@ export default function Dashboard({
           <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[.16em] text-slate-500">
             Workspace
           </div>
-          <NavItem icon={<LayoutDashboard size={17} />} label="Overview" />
-          <NavItem icon={<Rocket size={17} />} label="Roadmap" active />
-          <NavItem icon={<GitBranch size={17} />} label="Branches" />
-          <NavItem icon={<Cloud size={17} />} label="Environments" />
-          <div className="px-3 pb-2 pt-7 text-[10px] font-bold uppercase tracking-[.16em] text-slate-500">
-            Manage
-          </div>
-          <NavItem icon={<Users size={17} />} label="Teams" />
-          <NavItem icon={<Settings size={17} />} label="Settings" />
+          <NavItem
+            icon={<LayoutDashboard size={17} />}
+            label="Overview"
+            active={view === "overview"}
+            onClick={() => openView("overview")}
+          />
+          <NavItem
+            icon={<GitBranch size={17} />}
+            label="Branches"
+            active={view === "branches"}
+            onClick={() => openView("branches")}
+          />
+          <NavItem
+            icon={<Cloud size={17} />}
+            label="Environments"
+            active={view === "environments"}
+            onClick={() => openView("environments")}
+          />
         </nav>
 
         <div className="mt-auto rounded-2xl border border-white/10 bg-white/[.06] p-4">
-          <div className="flex items-center gap-2 text-xs font-semibold text-white">
-            <Sparkles size={14} className="text-[#ff8a70]" />
-            Preview sync
-          </div>
-          <p className="mt-2 text-xs leading-5 text-slate-400">
-            Web and React Native branches pair through a shared feature label.
+          <p className="text-xs leading-5 text-slate-400">
+            A branch appears when its pull requests share a feature label and
+            are marked ready for testing.
           </p>
-          <button className="mt-3 flex items-center gap-1 text-xs font-semibold text-[#ff8a70] hover:text-[#ffa38f]">
-            Configure <ChevronRight size={13} />
-          </button>
-        </div>
-        <div className="mt-4 flex items-center gap-3 px-2">
-          <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-[#ff9d85] to-[#ff5c3a] text-xs font-bold">
-            CW
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-xs font-semibold">Product team</div>
-            <div className="truncate text-[11px] text-slate-500">
-              Workspace admin
-            </div>
-          </div>
-          <MoreHorizontal size={16} className="text-slate-500" />
         </div>
       </aside>
 
@@ -391,93 +387,37 @@ export default function Dashboard({
                 Pocketnest
               </div>
               <h1 className="text-3xl font-bold tracking-[-.035em] text-slate-950 sm:text-4xl">
-                Testing board
+                {view === "overview"
+                  ? "Overview"
+                  : view === "branches"
+                    ? "Branches"
+                    : "Environments"}
               </h1>
               <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
-                {source === "github"
-                  ? "Branches labeled ready-for-testing, paired across web and React Native."
-                  : "Sample features for web and React Native. Connect GitHub to replace them with live pull requests."}
+                {view === "overview"
+                  ? "How many branches are ready for testing, which have a preview, and which are missing a match."
+                  : view === "branches"
+                    ? "Branches labeled ready-for-testing, paired by a shared feature label."
+                    : "The preview server entered for each branch."}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm">
-              {(["All", ...featureStatuses] as const).map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
-                    statusFilter === status
-                      ? "bg-slate-900 text-white shadow-sm"
-                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                  } ${status === "Released" ? "hidden xl:block" : ""}`}
-                >
-                  {status}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              label="Total features"
-              value={features.length}
-              detail={
-                source === "github"
-                  ? "Paired by feature label"
-                  : "Across 5 product teams"
-              }
-              icon={<Boxes size={18} />}
-              color="text-slate-700 bg-slate-100"
-            />
-            <StatCard
-              label="In flight"
-              value={inFlightCount}
-              detail={
-                source === "github" ? "ready-for-testing" : "Development or QA"
-              }
-              icon={<Code2 size={18} />}
-              color="text-amber-700 bg-amber-100"
-            />
-            <StatCard
-              label="Preview ready"
-              value={previewCount}
-              detail={
-                features.length === 0
-                  ? "No previews yet"
-                  : `${Math.round((previewCount / features.length) * 100)}% of the board`
-              }
-              icon={<Cloud size={18} />}
-              color="text-violet-700 bg-violet-100"
-            />
-            <StatCard
-              label="Released"
-              value={features.filter((item) => item.status === "Released").length}
-              detail="This release cycle"
-              icon={<Check size={18} />}
-              color="text-emerald-700 bg-emerald-100"
-            />
-          </div>
-
-          <div className="mt-8 flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">
-                {source === "github" ? "Branches" : "Upcoming features"}
-              </h2>
-              <p className="mt-0.5 text-xs text-slate-500">
-                {filteredFeatures.length}{" "}
-                {source === "github"
-                  ? filteredFeatures.length === 1
-                    ? "branch"
-                    : "branches"
-                  : filteredFeatures.length === 1
-                    ? "feature"
-                    : "features"}{" "}
-                shown
-              </p>
-            </div>
-            <button className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900">
-              <CalendarDays size={15} />
-              Sort by target date
-            </button>
+            {view === "branches" && source === "sample" && (
+              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm">
+                {(["All", ...featureStatuses] as const).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                      statusFilter === status
+                        ? "bg-slate-900 text-white shadow-sm"
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {error && (
@@ -494,29 +434,33 @@ export default function Dashboard({
             </div>
           )}
 
-          <div className="mt-4 grid gap-4 xl:grid-cols-2">
-            {filteredFeatures.map((feature) => (
-              <FeatureCard
-                key={feature.id}
-                feature={feature}
-                source={source}
-                onSelect={() => setSelectedFeature(feature)}
-              />
-            ))}
-          </div>
+          {view === "overview" && (
+            <Overview
+              total={features.length}
+              previewCount={previewCount}
+              unmatchedCount={unmatched.length}
+              missingPreviewCount={missingPreview.length}
+              attention={filteredFeatures.filter(
+                (feature) =>
+                  missingSides(feature).length > 0 || !feature.previewUrl,
+              )}
+              onSelect={setSelectedFeature}
+            />
+          )}
 
-          {filteredFeatures.length === 0 && (
-            <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center">
-              <Search className="mx-auto text-slate-300" size={28} />
-              <h3 className="mt-4 text-sm font-bold text-slate-800">
-                No features found
-              </h3>
-              <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-slate-500">
-                {source === "github"
-                  ? "Add ready-for-testing and a matching feature: label to pull requests in pocketnest-web and pocketnest-react-native."
-                  : "Try another search or status filter."}
-              </p>
-            </div>
+          {view === "branches" && (
+            <BranchList
+              features={filteredFeatures}
+              source={source}
+              onSelect={setSelectedFeature}
+            />
+          )}
+
+          {view === "environments" && (
+            <EnvironmentList
+              features={filteredFeatures}
+              onSelect={setSelectedFeature}
+            />
           )}
         </main>
       </div>
@@ -553,17 +497,216 @@ export default function Dashboard({
   );
 }
 
+function Overview({
+  total,
+  previewCount,
+  unmatchedCount,
+  missingPreviewCount,
+  attention,
+  onSelect,
+}: {
+  total: number;
+  previewCount: number;
+  unmatchedCount: number;
+  missingPreviewCount: number;
+  attention: Feature[];
+  onSelect: (feature: Feature) => void;
+}) {
+  return (
+    <>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Ready for testing"
+          value={total}
+          detail="Labeled branches on the board"
+          icon={<GitBranch size={18} />}
+          color="text-slate-700 bg-slate-100"
+        />
+        <StatCard
+          label="With a preview"
+          value={previewCount}
+          detail={
+            total === 0
+              ? "No branches yet"
+              : `${Math.round((previewCount / total) * 100)}% have a server URL`
+          }
+          icon={<Cloud size={18} />}
+          color="text-emerald-700 bg-emerald-100"
+        />
+        <StatCard
+          label="Missing a match"
+          value={unmatchedCount}
+          detail="Web or React Native is not open"
+          icon={<Boxes size={18} />}
+          color="text-amber-700 bg-amber-100"
+        />
+        <StatCard
+          label="No preview URL"
+          value={missingPreviewCount}
+          detail="Waiting for a developer to add one"
+          icon={<CircleDot size={18} />}
+          color="text-violet-700 bg-violet-100"
+        />
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-base font-bold text-slate-900">Needs attention</h2>
+        <p className="mt-0.5 text-xs text-slate-500">
+          Branches missing a repository or a preview URL.
+        </p>
+        <div className="mt-4 space-y-3">
+          {attention.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center text-sm text-slate-500">
+              Every ready branch has a web match, a React Native match, and a
+              preview URL.
+            </div>
+          )}
+          {attention.map((feature) => {
+            const gaps = [
+              ...missingSides(feature).map((side) => `Missing ${side}`),
+              ...(!feature.previewUrl ? ["No preview URL"] : []),
+            ];
+            return (
+              <button
+                key={feature.id}
+                onClick={() => onSelect(feature)}
+                className="flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-left transition hover:border-slate-300"
+              >
+                <div className="min-w-0">
+                  <div className="truncate font-mono text-sm font-semibold text-slate-950">
+                    {feature.webBranch || feature.nativeBranch}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    {gaps.join(" · ")}
+                  </div>
+                </div>
+                <ArrowUpRight size={16} className="ml-auto shrink-0 text-slate-400" />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function BranchList({
+  features,
+  source,
+  onSelect,
+}: {
+  features: Feature[];
+  source: "github" | "sample";
+  onSelect: (feature: Feature) => void;
+}) {
+  return (
+    <>
+      <p className="mt-8 text-xs text-slate-500">
+        {features.length} {features.length === 1 ? "branch" : "branches"} shown
+      </p>
+      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+        {features.map((feature) => (
+          <FeatureCard
+            key={feature.id}
+            feature={feature}
+            source={source}
+            onSelect={() => onSelect(feature)}
+          />
+        ))}
+      </div>
+      {features.length === 0 && (
+        <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center">
+          <Search className="mx-auto text-slate-300" size={28} />
+          <h3 className="mt-4 text-sm font-bold text-slate-800">
+            No branches found
+          </h3>
+          <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-slate-500">
+            {source === "github"
+              ? "Add ready-for-testing and a matching feature: label to pull requests in pocketnest-web and pocketnest-react-native."
+              : "Try another search or status filter."}
+          </p>
+        </div>
+      )}
+    </>
+  );
+}
+
+function EnvironmentList({
+  features,
+  onSelect,
+}: {
+  features: Feature[];
+  onSelect: (feature: Feature) => void;
+}) {
+  return (
+    <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      {features.length === 0 && (
+        <div className="px-5 py-16 text-center text-sm text-slate-500">
+          No branches to show.
+        </div>
+      )}
+      {features.map((feature) => (
+        <div
+          key={feature.id}
+          className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 last:border-b-0 sm:flex-row sm:items-center"
+        >
+          <button
+            onClick={() => onSelect(feature)}
+            className="min-w-0 flex-1 text-left"
+          >
+            <div className="truncate font-mono text-sm font-semibold text-slate-950">
+              {feature.webBranch || "No web branch"}
+            </div>
+            {feature.nativeBranch !== feature.webBranch && (
+              <div className="mt-1 truncate font-mono text-sm text-slate-600">
+                {feature.nativeBranch || "No React Native branch"}
+              </div>
+            )}
+            <div className="mt-1 text-[11px] text-slate-400">
+              {feature.webBranch ? "Web" : "Missing web"}
+              {" · "}
+              {feature.nativeBranch ? "React Native" : "Missing React Native"}
+            </div>
+          </button>
+          {feature.previewUrl ? (
+            <a
+              href={feature.previewUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex max-w-full items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800"
+            >
+              <Cloud size={14} />
+              <span className="truncate">{feature.previewUrl}</span>
+              <ExternalLink size={13} />
+            </a>
+          ) : (
+            <button
+              onClick={() => onSelect(feature)}
+              className="rounded-xl border border-dashed border-slate-300 px-3 py-2 text-xs font-semibold text-slate-500"
+            >
+              Add preview URL
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function NavItem({
   icon,
   label,
   active = false,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
+  onClick: () => void;
 }) {
   return (
     <button
+      onClick={onClick}
       className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
         active
           ? "bg-white/[.1] text-white shadow-sm"

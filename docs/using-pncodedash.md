@@ -7,6 +7,12 @@ The board reads open pull requests from two repositories:
 - `pocketnest/pocketnest-web`
 - `pocketnest/pocketnest-react-native`
 
+## What the navigation shows
+
+- **Overview** counts branches that are ready for testing, how many have a preview URL, and which ones are missing a web match, a React Native match, or a preview URL.
+- **Branches** lists those branches. The card title is the branch name, such as `feature/setup-question-history`.
+- **Environments** shows the preview server for each branch. Open a row to add or change the URL.
+
 ## 1. Mark the pull requests
 
 When a feature is ready for testing, add two labels to the pull request in each repository:
