@@ -27,6 +27,12 @@ A pull request appears when it has the `ready-for-testing` label and a
 label on a web pull request and a React Native pull request places them on one
 card. A successful GitHub deployment for that branch supplies the preview link.
 
+## Pull request previews
+
+Vercel deploys this repository automatically. A push to `main` updates
+https://pncodedash.vercel.app. A pull request gets its own preview, and Vercel
+posts the preview URL on the pull request.
+
 ## Commands
 
 ```bash
