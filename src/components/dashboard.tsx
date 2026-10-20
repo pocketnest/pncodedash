@@ -589,6 +589,18 @@ function StatCard({
   );
 }
 
+function branchNames(feature: Feature) {
+  if (
+    feature.webBranch &&
+    feature.nativeBranch &&
+    feature.webBranch !== feature.nativeBranch
+  ) {
+    return [feature.webBranch, feature.nativeBranch];
+  }
+
+  return [feature.webBranch || feature.nativeBranch || feature.title];
+}
+
 function FeatureCard({
   feature,
   source,
@@ -599,6 +611,7 @@ function FeatureCard({
   onSelect: () => void;
 }) {
   const status = statusStyles[feature.status];
+  const branches = branchNames(feature);
   return (
     <article
       onClick={onSelect}
@@ -607,12 +620,27 @@ function FeatureCard({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <StatusPill status={feature.status} />
-          <h3 className="mt-4 text-lg font-bold tracking-[-.02em] text-slate-950">
-            {feature.title}
-          </h3>
-          <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-slate-500">
-            {feature.description}
-          </p>
+          {source === "github" ? (
+            <div className="mt-4 space-y-1">
+              {branches.map((branch) => (
+                <h3
+                  key={branch}
+                  className="truncate font-mono text-sm font-semibold tracking-tight text-slate-950"
+                >
+                  {branch}
+                </h3>
+              ))}
+            </div>
+          ) : (
+            <>
+              <h3 className="mt-4 text-lg font-bold tracking-[-.02em] text-slate-950">
+                {feature.title}
+              </h3>
+              <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-slate-500">
+                {feature.description}
+              </p>
+            </>
+          )}
         </div>
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 text-slate-400 transition group-hover:border-slate-900 group-hover:bg-slate-900 group-hover:text-white">
           <ArrowUpRight size={16} />
@@ -715,12 +743,27 @@ function FeatureDetail({
         </div>
         <div className="mt-8">
           <StatusPill status={feature.status} />
-          <h2 className="mt-4 text-3xl font-bold tracking-[-.035em]">
-            {feature.title}
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-slate-500">
-            {feature.description}
-          </p>
+          {source === "github" ? (
+            <div className="mt-4 space-y-2">
+              {branchNames(feature).map((branch) => (
+                <h2
+                  key={branch}
+                  className="break-all font-mono text-xl font-semibold tracking-tight"
+                >
+                  {branch}
+                </h2>
+              ))}
+            </div>
+          ) : (
+            <h2 className="mt-4 text-3xl font-bold tracking-[-.035em]">
+              {feature.title}
+            </h2>
+          )}
+          {source === "sample" && (
+            <p className="mt-3 text-sm leading-6 text-slate-500">
+              {feature.description}
+            </p>
+          )}
         </div>
 
         <div className="mt-8 grid grid-cols-2 gap-3">
