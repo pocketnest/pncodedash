@@ -1,6 +1,6 @@
 # Using PNCodeDash
 
-PNCodeDash is the testing board at <https://pncodedash.vercel.app>. Sign in with a verified `@pocketnest.com` Google account. Other email addresses cannot register or sign in. It shows which features are ready for testing, which branches hold the work, and where to try the preview.
+PNCodeDash is the testing board at <https://pncodedash.vercel.app>. Sign in with a verified `@pocketnest.com` Google account. Other email addresses cannot register or sign in. It shows which features are ready for testing, which branches hold the work, and which environment to test.
 
 The board reads open pull requests from two repositories:
 
@@ -9,9 +9,9 @@ The board reads open pull requests from two repositories:
 
 ## What the navigation shows
 
-- **Overview** counts branches that are ready for testing, how many have a preview URL, and which ones are missing a web match, a React Native match, or a preview URL.
+- **Overview** counts branches that are ready for testing, how many have a testing environment, and which ones are missing a web match, a React Native match, or a testing URL.
 - **Branches** lists those branches. The card title is the branch name, such as `feature/setup-question-history`.
-- **Environments** shows the preview server for each branch. Open a row to add or change the URL.
+- **Environments** shows the testing environment for each branch. Open a row to add or change the URL.
 
 ## 1. Mark the pull requests
 
@@ -35,11 +35,9 @@ gh pr edit NATIVE_PR_NUMBER --repo pocketnest/pocketnest-react-native --add-labe
 
 Replace the pull request numbers and the feature name with the ones for your work. Create each label once per repository. After that, only the `gh pr edit` commands are needed.
 
-## 2. Add the preview server
+## 2. Add the testing environment
 
-After you start a preview server for that feature, open the branch on the board and paste the URL. Save it. Everyone viewing the board sees the same link, and it can be changed or cleared later.
-
-The preview URL is entered by hand. The board does not take it from a GitHub deployment.
+Open the branch on the board and paste the URL people should use for testing. Save it. Anyone signed in sees the same link, including from another computer. The board stores the URL in Vercel Blob. It does not write the URL to GitHub, and it does not read it from a deployment.
 
 ## 3. Remove it when testing is done
 

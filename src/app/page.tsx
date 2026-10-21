@@ -6,7 +6,7 @@ import Dashboard from "@/components/dashboard";
 import { authOptions, isPocketnestEmail } from "@/lib/auth";
 import { Feature, seedFeatures } from "@/lib/features";
 import { GitHubReadError, loadTestingFeatures } from "@/lib/github";
-import { loadPreviewUrls } from "@/lib/preview-urls";
+import { TestingUrlError, loadTestingUrls } from "@/lib/testing-url-store";
 
 function BoardFallback() {
   return (
@@ -37,20 +37,28 @@ async function TestingBoard() {
   let errorMessage: string | undefined;
 
   try {
-    const [loadedFeatures, previewUrls] = await Promise.all([
-      loadTestingFeatures(token),
-      loadPreviewUrls(token),
-    ]);
-    features = loadedFeatures.map((feature) => ({
-      ...feature,
-      previewUrl: previewUrls[feature.id],
-    }));
+    features = await loadTestingFeatures(token);
   } catch (error) {
     features = [];
     errorMessage =
       error instanceof GitHubReadError
         ? error.message
         : "GitHub could not be reached. Check that GITHUB_TOKEN can read both Pocketnest repositories.";
+  }
+
+  if (!errorMessage) {
+    try {
+      const testingUrls = await loadTestingUrls();
+      features = features.map((feature) => ({
+        ...feature,
+        previewUrl: testingUrls[feature.id],
+      }));
+    } catch (error) {
+      errorMessage =
+        error instanceof TestingUrlError
+          ? error.message
+          : "Saved testing environment URLs could not be read.";
+    }
   }
 
   return (

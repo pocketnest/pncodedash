@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PNCodeDash · Product delivery",
   description:
-    "Track upcoming product features, implementation branches, and preview deployments.",
+    "Track upcoming product features, implementation branches, and testing environments.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

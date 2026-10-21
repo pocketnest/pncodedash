@@ -47,9 +47,13 @@ GITHUB_TOKEN=your_token npm run dev
 A pull request appears when it has the `ready-for-testing` label and a
 `feature:` label, for example `feature:smart-recommendations`. The same feature
 label on a web pull request and a React Native pull request places them on one
-card. The preview URL is entered on the branch after a developer starts a
-preview server. Saving it requires the token to also edit files in
-`pocketnest/pncodedash`.
+card. Open a branch and enter the testing environment URL. The board stores
+that URL in Vercel Blob, so anyone signed in can see it from any computer.
+It does not write the URL to GitHub.
+
+Create a Blob store in the Vercel project and connect it. Vercel sets
+`BLOB_READ_WRITE_TOKEN`. Pull that variable locally with `vercel env pull`
+before saving URLs in development.
 
 ## Commands
 
