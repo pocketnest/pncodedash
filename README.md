@@ -55,6 +55,15 @@ Create a Blob store in the Vercel project and connect it. Vercel sets
 `BLOB_READ_WRITE_TOKEN`. Pull that variable locally with `vercel env pull`
 before saving URLs in development.
 
+To show ClickUp tickets, tag each task with the feature slug from the GitHub
+label. A task tagged `smart-recommendations` appears on the card for
+`feature:smart-recommendations`. Create a personal API token in ClickUp under
+Settings → Apps, then start the app with the Workspace ID from the ClickUp URL:
+
+```bash
+CLICKUP_API_TOKEN=pk_your_token CLICKUP_TEAM_ID=your_workspace_id GITHUB_TOKEN=your_token npm run dev
+```
+
 ## Commands
 
 ```bash

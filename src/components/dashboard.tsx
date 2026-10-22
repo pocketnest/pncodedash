@@ -209,6 +209,11 @@ export default function Dashboard({
           feature.team,
           feature.webBranch,
           feature.nativeBranch,
+          ...(feature.tickets ?? []).flatMap((ticket) => [
+            ticket.name,
+            ticket.id,
+            ticket.status,
+          ]),
         ].some((value) => value.toLowerCase().includes(query));
       return matchesStatus && matchesQuery;
     });
@@ -832,6 +837,15 @@ function FeatureCard({
         />
       </div>
 
+      {feature.tickets && feature.tickets.length > 0 && (
+        <p className="mt-3 truncate text-xs font-medium text-slate-600">
+          {feature.tickets[0].name}
+          {feature.tickets.length > 1
+            ? ` +${feature.tickets.length - 1} more`
+            : ""}
+        </p>
+      )}
+
       {source === "sample" && (
         <div className="mt-5">
           <div className="mb-2 flex items-center justify-between text-[11px] font-semibold">
@@ -974,6 +988,43 @@ function FeatureDetail({
             />
           </div>
         </div>
+
+        {feature.tickets && (
+          <div className="mt-8">
+            <h3 className="text-xs font-bold uppercase tracking-[.14em] text-slate-400">
+              ClickUp tickets
+            </h3>
+            <div className="mt-3 space-y-2">
+              {feature.tickets.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center text-xs text-slate-500">
+                  No ClickUp tickets tagged {feature.id}.
+                </div>
+              ) : (
+                feature.tickets.map((ticket) => (
+                  <a
+                    key={ticket.id}
+                    href={ticket.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 rounded-2xl border border-slate-200 p-4 transition hover:border-slate-300"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold text-slate-900">
+                        {ticket.name}
+                      </div>
+                      <div className="mt-1 truncate text-xs text-slate-500">
+                        {ticket.status}
+                        {" · "}
+                        {ticket.assignees}
+                      </div>
+                    </div>
+                    <ExternalLink size={16} className="shrink-0 text-slate-400" />
+                  </a>
+                ))
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="mt-8">
           <h3 className="text-xs font-bold uppercase tracking-[.14em] text-slate-400">

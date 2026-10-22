@@ -4,6 +4,14 @@ export type FeatureStatus =
   | "Ready for testing"
   | "Released";
 
+export type ClickUpTicket = {
+  id: string;
+  name: string;
+  status: string;
+  url: string;
+  assignees: string;
+};
+
 export type Feature = {
   id: string;
   title: string;
@@ -19,6 +27,7 @@ export type Feature = {
   previewUrl?: string;
   webPreviewUrl?: string;
   nativePreviewUrl?: string;
+  tickets?: ClickUpTicket[];
   progress: number;
   updatedAt: string;
 };

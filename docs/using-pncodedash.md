@@ -35,10 +35,14 @@ gh pr edit NATIVE_PR_NUMBER --repo pocketnest/pocketnest-react-native --add-labe
 
 Replace the pull request numbers and the feature name with the ones for your work. Create each label once per repository. After that, only the `gh pr edit` commands are needed.
 
-## 2. Add the testing environment
+## 2. Tag the ClickUp ticket
+
+Add a ClickUp tag whose name matches the feature slug. For `feature:setup-question-history`, tag the task `setup-question-history`. The board lists every open task with that tag, including its status and assignees, on that branch.
+
+## 3. Add the testing environment
 
 Open the branch on the board and paste the URL people should use for testing. Save it. Anyone signed in sees the same link, including from another computer. The board stores the URL in Vercel Blob. It does not write the URL to GitHub, and it does not read it from a deployment.
 
-## 3. Remove it when testing is done
+## 4. Remove it when testing is done
 
 Remove the `ready-for-testing` label, or close the pull request. The branch leaves the board.

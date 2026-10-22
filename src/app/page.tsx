@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import Dashboard from "@/components/dashboard";
 import { authOptions, isPocketnestEmail } from "@/lib/auth";
 import { Feature, seedFeatures } from "@/lib/features";
+import { ClickUpReadError, loadTicketsForFeatures } from "@/lib/clickup";
 import { GitHubReadError, loadTestingFeatures } from "@/lib/github";
 import { TestingUrlError, loadTestingUrls } from "@/lib/testing-url-store";
 
@@ -58,6 +59,34 @@ async function TestingBoard() {
         error instanceof TestingUrlError
           ? error.message
           : "Saved testing environment URLs could not be read.";
+    }
+  }
+
+  const clickUpToken = process.env.CLICKUP_API_TOKEN;
+  const clickUpTeamId = process.env.CLICKUP_TEAM_ID;
+  if (features.length > 0 && (clickUpToken || clickUpTeamId)) {
+    if (!clickUpToken || !clickUpTeamId) {
+      const message =
+        "Set both CLICKUP_API_TOKEN and CLICKUP_TEAM_ID to show ClickUp tickets.";
+      errorMessage = errorMessage ? `${errorMessage} ${message}` : message;
+    } else {
+      try {
+        const tickets = await loadTicketsForFeatures(
+          clickUpToken,
+          clickUpTeamId,
+          features.map((feature) => feature.id),
+        );
+        features = features.map((feature) => ({
+          ...feature,
+          tickets: tickets[feature.id] ?? [],
+        }));
+      } catch (error) {
+        const message =
+          error instanceof ClickUpReadError
+            ? error.message
+            : "ClickUp could not be reached.";
+        errorMessage = errorMessage ? `${errorMessage} ${message}` : message;
+      }
     }
   }
 
