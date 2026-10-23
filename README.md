@@ -51,9 +51,10 @@ GitHub Project status is Ready to test. Web and React Native pull requests
 assigned to the same project are placed on one card. Give the token permission
 to read GitHub Projects. If that permission is missing, pull requests with the
 label still appear, and the board says that project grouping is unavailable.
-Open a branch and enter the testing environment URL. The board stores that
-URL in Vercel Blob, so anyone signed in can see it from any computer. It does
-not write the URL to GitHub.
+The testing environment URL is filled from the latest successful deployment
+on the backend branch in `pocketnest-web`. The token needs Deployments read
+permission on that repository. A saved URL replaces the deployment URL. The
+board stores a saved URL in Vercel Blob and does not write it to GitHub.
 
 Create a Blob store in the Vercel project and connect it. Vercel sets
 `BLOB_READ_WRITE_TOKEN`. Pull that variable locally with `vercel env pull`

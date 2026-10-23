@@ -43,7 +43,7 @@ Add a ClickUp tag whose name matches the feature slug. For `feature:setup-questi
 
 ## 3. Add the testing environment
 
-Open the branch on the board and paste the URL people should use for testing. Save it. Anyone signed in sees the same link, including from another computer. The board stores the URL in Vercel Blob. It does not write the URL to GitHub, and it does not read it from a deployment.
+The testing URL is filled from the latest successful deployment on the backend branch in `pocketnest-web`. The board reads that URL from GitHub Deployments. Open the branch to replace it. A saved URL is kept for anyone signed in, including from another computer, and is stored in Vercel Blob. The board does not write the URL to GitHub.
 
 ## 4. Remove it when testing is done
 

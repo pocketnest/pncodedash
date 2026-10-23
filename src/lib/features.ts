@@ -25,6 +25,7 @@ export type Feature = {
   webUrl?: string;
   nativeUrl?: string;
   previewUrl?: string;
+  previewUrlFromDeployment?: boolean;
   webPreviewUrl?: string;
   nativePreviewUrl?: string;
   tickets?: ClickUpTicket[];

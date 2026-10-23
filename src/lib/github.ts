@@ -1,4 +1,5 @@
 import { Feature } from "@/lib/features";
+import { isTestingUrl } from "@/lib/testing-urls";
 
 const OWNER = "pocketnest";
 const WEB_REPO = "pocketnest-web";
@@ -113,6 +114,14 @@ async function githubFetch<T>(path: string, token: string): Promise<T> {
   });
 
   if (!response.ok) {
+    if (
+      path.includes("/deployments") &&
+      (response.status === 403 || response.status === 404)
+    ) {
+      throw new GitHubReadError(
+        "The GitHub token needs Deployments read permission on pocketnest-web to fill testing URLs from the latest backend deployment.",
+      );
+    }
     throw new GitHubReadError(
       `GitHub returned ${response.status} while reading ${path}.`,
     );
@@ -447,4 +456,62 @@ export function featuresFromPulls(
   }
 
   return features;
+}
+
+type DeploymentStatus = {
+  state: string;
+  environment_url?: string | null;
+  created_at: string;
+};
+
+export function testingUrlFromStatuses(statuses: DeploymentStatus[]) {
+  const latest = [...statuses].sort((a, b) =>
+    b.created_at.localeCompare(a.created_at),
+  )[0];
+  if (!latest || latest.state !== "success") return undefined;
+  const url = latest.environment_url?.trim() ?? "";
+  return isTestingUrl(url) ? url : undefined;
+}
+
+async function latestBackendDeploymentUrl(token: string, branch: string) {
+  const deployments = await githubFetch<{ id: number }[]>(
+    `/repos/${OWNER}/${WEB_REPO}/deployments?ref=${encodeURIComponent(branch)}&per_page=10`,
+    token,
+  );
+
+  for (const deployment of deployments) {
+    const statuses = await githubFetch<DeploymentStatus[]>(
+      `/repos/${OWNER}/${WEB_REPO}/deployments/${deployment.id}/statuses?per_page=5`,
+      token,
+    );
+    const url = testingUrlFromStatuses(statuses);
+    if (url) return url;
+  }
+
+  return undefined;
+}
+
+export async function loadBackendTestingUrls(
+  token: string,
+  branches: string[],
+) {
+  const urls: Record<string, string> = {};
+  let notice: string | undefined;
+  const unique = [...new Set(branches.filter(Boolean))];
+
+  await Promise.all(
+    unique.map(async (branch) => {
+      try {
+        const url = await latestBackendDeploymentUrl(token, branch);
+        if (url) urls[branch] = url;
+      } catch (error) {
+        notice =
+          error instanceof GitHubReadError
+            ? error.message
+            : "Backend deployments could not be read.";
+      }
+    }),
+  );
+
+  return { urls, notice };
 }

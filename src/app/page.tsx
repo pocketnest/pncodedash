@@ -6,7 +6,11 @@ import Dashboard from "@/components/dashboard";
 import { authOptions, isPocketnestEmail } from "@/lib/auth";
 import { Feature, seedFeatures } from "@/lib/features";
 import { ClickUpReadError, loadTicketsForFeatures } from "@/lib/clickup";
-import { GitHubReadError, loadTestingFeatures } from "@/lib/github";
+import {
+  GitHubReadError,
+  loadBackendTestingUrls,
+  loadTestingFeatures,
+} from "@/lib/github";
 import { TestingUrlError, loadTestingUrls } from "@/lib/testing-url-store";
 
 function BoardFallback() {
@@ -50,12 +54,9 @@ async function TestingBoard() {
   }
 
   if (features.length > 0) {
+    let savedUrls: Record<string, string> = {};
     try {
-      const testingUrls = await loadTestingUrls();
-      features = features.map((feature) => ({
-        ...feature,
-        previewUrl: testingUrls[feature.id],
-      }));
+      savedUrls = await loadTestingUrls();
     } catch (error) {
       const message =
         error instanceof TestingUrlError
@@ -63,6 +64,28 @@ async function TestingBoard() {
           : "Saved testing environment URLs could not be read.";
       errorMessage = errorMessage ? `${errorMessage} ${message}` : message;
     }
+
+    const deployments = await loadBackendTestingUrls(
+      token,
+      features.map((feature) => feature.webBranch),
+    );
+    if (deployments.notice) {
+      errorMessage = errorMessage
+        ? `${errorMessage} ${deployments.notice}`
+        : deployments.notice;
+    }
+
+    features = features.map((feature) => {
+      const saved = savedUrls[feature.id];
+      const deployed = deployments.urls[feature.webBranch];
+      if (saved) return { ...feature, previewUrl: saved };
+      if (!deployed) return feature;
+      return {
+        ...feature,
+        previewUrl: deployed,
+        previewUrlFromDeployment: true,
+      };
+    });
   }
 
   const clickUpToken = process.env.CLICKUP_API_TOKEN;

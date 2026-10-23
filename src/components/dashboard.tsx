@@ -247,11 +247,15 @@ export default function Dashboard({
     const nextUrl = previewUrl || undefined;
     setFeatures((current) =>
       current.map((feature) =>
-        feature.id === id ? { ...feature, previewUrl: nextUrl } : feature,
+        feature.id === id
+          ? { ...feature, previewUrl: nextUrl, previewUrlFromDeployment: false }
+          : feature,
       ),
     );
     setSelectedFeature((current) =>
-      current?.id === id ? { ...current, previewUrl: nextUrl } : current,
+      current?.id === id
+        ? { ...current, previewUrl: nextUrl, previewUrlFromDeployment: false }
+        : current,
     );
   }
 
@@ -1069,6 +1073,7 @@ function FeatureDetail({
                 key={`${feature.id}:${feature.previewUrl ?? ""}`}
                 featureId={feature.id}
                 previewUrl={feature.previewUrl ?? ""}
+                fromDeployment={feature.previewUrlFromDeployment}
                 onSaved={onPreviewSaved}
               />
             ) : feature.previewUrl ? (
@@ -1100,10 +1105,12 @@ function FeatureDetail({
 function PreviewUrlEditor({
   featureId,
   previewUrl,
+  fromDeployment,
   onSaved,
 }: {
   featureId: string;
   previewUrl: string;
+  fromDeployment?: boolean;
   onSaved: (id: string, previewUrl: string) => void;
 }) {
   const [url, setUrl] = useState(previewUrl);
@@ -1151,8 +1158,9 @@ function PreviewUrlEditor({
         className="form-input"
       />
       <p className="text-xs leading-5 text-slate-500">
-        Enter the environment people should use to test this branch. Anyone
-        signed in can see it, including from another computer.
+        {fromDeployment
+          ? "Filled from the latest deployment of the backend branch. Save a different URL if testers should use another environment."
+          : "Enter the environment people should use to test this branch. Anyone signed in can see it, including from another computer."}
       </p>
       {error && <p className="text-xs font-medium text-amber-700">{error}</p>}
       <button
