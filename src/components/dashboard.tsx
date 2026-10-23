@@ -209,6 +209,8 @@ export default function Dashboard({
           feature.team,
           feature.webBranch,
           feature.nativeBranch,
+          feature.projectName ?? "",
+          feature.projectStatus ?? "",
           ...(feature.tickets ?? []).flatMap((ticket) => [
             ticket.name,
             ticket.id,
@@ -340,8 +342,9 @@ export default function Dashboard({
 
         <div className="mt-auto rounded-2xl border border-white/10 bg-white/[.06] p-4">
           <p className="text-xs leading-5 text-slate-400">
-            A branch appears when its pull requests share a feature label and
-            are marked ready for testing.
+            A branch appears when its pull request is labeled ready for
+            testing, or its GitHub Project status is ready to test. Branches
+            on the same project are grouped together.
           </p>
         </div>
       </aside>
@@ -410,7 +413,7 @@ export default function Dashboard({
                 {view === "overview"
                   ? "How many branches are ready for testing, which have a testing environment, and which are missing a match."
                   : view === "branches"
-                    ? "Branches labeled ready-for-testing, paired by a shared feature label."
+                    ? "Branches ready for testing, grouped when they share a GitHub Project."
                     : "The testing environment entered for each branch."}
               </p>
             </div>
@@ -635,7 +638,7 @@ function BranchList({
           </h3>
           <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-slate-500">
             {source === "github"
-              ? "Add ready-for-testing and a matching feature: label to pull requests in pocketnest-web and pocketnest-react-native."
+              ? "Label a pull request ready-for-testing, or set its GitHub Project status to Ready to test. Pull requests on the same project are shown together."
               : "Try another search or status filter."}
           </p>
         </div>
@@ -797,6 +800,12 @@ function FeatureCard({
           <StatusPill status={feature.status} />
           {source === "github" ? (
             <div className="mt-4 space-y-1">
+              {feature.projectName && (
+                <p className="truncate text-sm font-semibold text-slate-950">
+                  {feature.projectName}
+                  {feature.projectStatus ? ` · ${feature.projectStatus}` : ""}
+                </p>
+              )}
               {branches.map((branch) => (
                 <h3
                   key={branch}
@@ -967,6 +976,30 @@ function FeatureDetail({
             <DetailTile label="Progress" value={`${feature.progress}%`} />
           )}
         </div>
+
+        {feature.projectName && (
+          <div className="mt-8">
+            <h3 className="text-xs font-bold uppercase tracking-[.14em] text-slate-400">
+              GitHub project
+            </h3>
+            <a
+              href={feature.projectUrl ?? "https://github.com/orgs/pocketnest/projects"}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 flex items-center gap-3 rounded-2xl border border-slate-200 p-4 transition hover:border-slate-300"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold text-slate-900">
+                  {feature.projectName}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">
+                  {feature.projectStatus || "No status"}
+                </div>
+              </div>
+              <ExternalLink size={16} className="shrink-0 text-slate-400" />
+            </a>
+          </div>
+        )}
 
         <div className="mt-8">
           <h3 className="text-xs font-bold uppercase tracking-[.14em] text-slate-400">

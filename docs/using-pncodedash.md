@@ -10,17 +10,19 @@ The board reads open pull requests from two repositories:
 ## What the navigation shows
 
 - **Overview** counts branches that are ready for testing, how many have a testing environment, and which ones are missing a web match, a React Native match, or a testing URL.
-- **Branches** lists those branches. The card title is the branch name, such as `feature/setup-question-history`.
+- **Branches** lists those branches. A card shows the GitHub Project name when the pull requests are on a project, plus the branch names.
 - **Environments** shows the testing environment for each branch. Open a row to add or change the URL.
 
 ## 1. Mark the pull requests
 
-When a feature is ready for testing, add two labels to the pull request in each repository:
+A branch appears on the board in either of these cases:
 
-- `ready-for-testing` puts the branch on the board.
-- `feature:setup-question-history` pairs the web and React Native branches onto one card. Use the feature's own name after `feature:`.
+- The pull request has the `ready-for-testing` label.
+- The pull request is on a GitHub Project whose status is Ready to test.
 
-The same `feature:` label must be on both pull requests. The card title is the branch name, such as `feature/setup-question-history`.
+Add both the web and React Native pull requests to the same GitHub Project. The board groups them onto one card using that project name. A shared `feature:` label still groups them when they are not on a project.
+
+The card shows the project name, its status, and the branch names.
 
 ```bash
 gh label create "ready-for-testing" --repo pocketnest/pocketnest-web --description "Include this branch on the PNCodeDash testing board"
@@ -37,7 +39,7 @@ Replace the pull request numbers and the feature name with the ones for your wor
 
 ## 2. Tag the ClickUp ticket
 
-Add a ClickUp tag whose name matches the feature slug. For `feature:setup-question-history`, tag the task `setup-question-history`. The board lists every open task with that tag, including its status and assignees, on that branch.
+Add a ClickUp tag whose name matches the feature slug. For `feature:setup-question-history`, tag the task `setup-question-history`. When the pull requests are grouped by a GitHub Project and do not share a `feature:` label, tag the task with the project name in lowercase and with spaces changed to hyphens. The board lists every open task with that tag, including its status and assignees, on that branch.
 
 ## 3. Add the testing environment
 
@@ -45,4 +47,4 @@ Open the branch on the board and paste the URL people should use for testing. Sa
 
 ## 4. Remove it when testing is done
 
-Remove the `ready-for-testing` label, or close the pull request. The branch leaves the board.
+Close the pull request, or clear both signals that put it on the board: the `ready-for-testing` label and a Ready to test project status. The branch leaves once neither one remains.

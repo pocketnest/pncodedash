@@ -1,9 +1,11 @@
 # PNCodeDash
 
 A testing board for Pocketnest features. It reads open pull requests from
-`pocketnest/pocketnest-web` and `pocketnest/pocketnest-react-native`, keeps the
-ones labeled `ready-for-testing`, and pairs web with React Native when both
-pull requests share a `feature:` label.
+`pocketnest/pocketnest-web` and `pocketnest/pocketnest-react-native`. A pull
+request is included when it has the `ready-for-testing` label or its GitHub
+Project status is Ready to test. Pull requests on the same project are grouped
+onto one card. A shared `feature:` label still groups them when they are not
+on a project.
 
 ## Google sign-in
 
@@ -44,12 +46,14 @@ requests and deployments in both repositories, then start the app with it:
 GITHUB_TOKEN=your_token npm run dev
 ```
 
-A pull request appears when it has the `ready-for-testing` label and a
-`feature:` label, for example `feature:smart-recommendations`. The same feature
-label on a web pull request and a React Native pull request places them on one
-card. Open a branch and enter the testing environment URL. The board stores
-that URL in Vercel Blob, so anyone signed in can see it from any computer.
-It does not write the URL to GitHub.
+A pull request appears when it has the `ready-for-testing` label, or when its
+GitHub Project status is Ready to test. Web and React Native pull requests
+assigned to the same project are placed on one card. Give the token permission
+to read GitHub Projects. If that permission is missing, pull requests with the
+label still appear, and the board says that project grouping is unavailable.
+Open a branch and enter the testing environment URL. The board stores that
+URL in Vercel Blob, so anyone signed in can see it from any computer. It does
+not write the URL to GitHub.
 
 Create a Blob store in the Vercel project and connect it. Vercel sets
 `BLOB_READ_WRITE_TOKEN`. Pull that variable locally with `vercel env pull`

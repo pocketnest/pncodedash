@@ -28,6 +28,9 @@ export type Feature = {
   webPreviewUrl?: string;
   nativePreviewUrl?: string;
   tickets?: ClickUpTicket[];
+  projectName?: string;
+  projectStatus?: string;
+  projectUrl?: string;
   progress: number;
   updatedAt: string;
 };

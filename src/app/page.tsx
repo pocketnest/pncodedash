@@ -38,7 +38,9 @@ async function TestingBoard() {
   let errorMessage: string | undefined;
 
   try {
-    features = await loadTestingFeatures(token);
+    const loaded = await loadTestingFeatures(token);
+    features = loaded.features;
+    errorMessage = loaded.notice;
   } catch (error) {
     features = [];
     errorMessage =
@@ -47,7 +49,7 @@ async function TestingBoard() {
         : "GitHub could not be reached. Check that GITHUB_TOKEN can read both Pocketnest repositories.";
   }
 
-  if (!errorMessage) {
+  if (features.length > 0) {
     try {
       const testingUrls = await loadTestingUrls();
       features = features.map((feature) => ({
@@ -55,10 +57,11 @@ async function TestingBoard() {
         previewUrl: testingUrls[feature.id],
       }));
     } catch (error) {
-      errorMessage =
+      const message =
         error instanceof TestingUrlError
           ? error.message
           : "Saved testing environment URLs could not be read.";
+      errorMessage = errorMessage ? `${errorMessage} ${message}` : message;
     }
   }
 
