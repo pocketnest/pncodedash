@@ -69,6 +69,12 @@ Settings → Apps, then start the app with the Workspace ID from the ClickUp URL
 CLICKUP_API_TOKEN=pk_your_token CLICKUP_TEAM_ID=your_workspace_id GITHUB_TOKEN=your_token npm run dev
 ```
 
+## Pull request previews
+
+Vercel deploys this repository automatically. A push to `main` updates
+https://pncodedash.vercel.app. A pull request gets its own preview, and Vercel
+posts the preview URL on the pull request.
+
 ## Commands
 
 ```bash
